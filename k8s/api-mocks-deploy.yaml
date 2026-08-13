@@ -1,0 +1,129 @@
+# === API MOCK: Webhook IN ===
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webhook-in-mock-json
+  namespace: default
+data:
+  # Servindo um JSON simulado
+  in.json: |
+    {
+      "status": "online",
+      "service": "webhook-receiver",
+      "description": "Mock API para recebimento de Webhooks",
+      "method_allowed": "POST"
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-in
+  namespace: default
+  labels:
+    app: webhook-in
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-in
+  template:
+    metadata:
+      labels:
+        app: webhook-in
+    spec:
+      containers:
+      - name: web
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: json-volume
+          mountPath: /usr/share/nginx/html/api
+      volumes:
+      - name: json-volume
+        configMap:
+          name: webhook-in-mock-json
+          items:
+          - key: in.json
+            path: in # Monta como /usr/share/nginx/html/api/in
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-in-svc
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: webhook-in
+  type: ClusterIP
+
+---
+# === API MOCK: Webhook OUT ===
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webhook-out-mock-json
+  namespace: default
+data:
+  out.json: |
+    {
+      "status": "online",
+      "service": "webhook-sender",
+      "description": "Mock API para envio/disparo de Webhooks",
+      "method_allowed": "GET"
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-out
+  namespace: default
+  labels:
+    app: webhook-out
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-out
+  template:
+    metadata:
+      labels:
+        app: webhook-out
+    spec:
+      containers:
+      - name: web
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: json-volume
+          mountPath: /usr/share/nginx/html/api
+      volumes:
+      - name: json-volume
+        configMap:
+          name: webhook-out-mock-json
+          items:
+          - key: out.json
+            path: out # Monta como /usr/share/nginx/html/api/out
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-out-svc
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: webhook-out
+  type: ClusterIP

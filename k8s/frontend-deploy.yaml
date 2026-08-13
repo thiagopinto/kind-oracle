@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webhook-frontend-html
+  namespace: default
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Webhook Portal</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #1e1e2f 0%, #11111d 100%);
+                color: #ffffff;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .container {
+                text-align: center;
+                padding: 40px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            h1 {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+                background: linear-gradient(45deg, #00f2fe 0%, #4facfe 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            p {
+                font-size: 1.1rem;
+                color: #a0aec0;
+                margin-bottom: 20px;
+            }
+            .endpoints {
+                text-align: left;
+                background: rgba(0, 0, 0, 0.2);
+                padding: 15px;
+                border-radius: 8px;
+                font-family: monospace;
+                margin-top: 15px;
+            }
+            .endpoint-item {
+                margin: 8px 0;
+            }
+            .method {
+                font-weight: bold;
+                color: #00f2fe;
+            }
+            .badge {
+                display: inline-block;
+                padding: 6px 12px;
+                border-radius: 20px;
+                background-color: #2d3748;
+                font-size: 0.85rem;
+                font-weight: bold;
+                color: #4facfe;
+                border: 1px solid #4facfe;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Webhook Portal 🚀</h1>
+            <p>Plataforma de Testes de Webhooks (Geral)</p>
+            <div class="badge">Nó Frontend (Servindo path: /)</div>
+            
+            <div class="endpoints">
+                <strong>Endpoints da API disponíveis:</strong>
+                <div class="endpoint-item"><span class="method">POST</span> /api/in - Receber Webhooks</div>
+                <div class="endpoint-item"><span class="method">GET</span> /api/out - Listar Webhooks Enviados</div>
+            </div>
+        </div>
+    </body>
+    </html>
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-frontend
+  namespace: default
+  labels:
+    app: webhook-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-frontend
+  template:
+    metadata:
+      labels:
+        app: webhook-frontend
+    spec:
+      containers:
+      - name: web
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html-volume
+        configMap:
+          name: webhook-frontend-html
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-frontend-svc
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: webhook-frontend
+  type: ClusterIP

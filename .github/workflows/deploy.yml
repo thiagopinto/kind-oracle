@@ -1,0 +1,41 @@
+name: Deploy to Oracle Cloud
+
+on:
+  push:
+    branches:
+      - main # Dispara o deploy automático ao fazer push para a branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Executar Deploy via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        port: 22
+        script: |
+          # 1. Navegar até o diretório do projeto na VM
+          cd ${{ secrets.WORK_DIR }}
+          
+          # 2. Atualizar o código a partir do repositório Git
+          git pull origin main
+          
+          # 3. Aplicar os manifestos de infraestrutura e mocks atualizados no Kubernetes (Kind)
+          kubectl apply -f k8s/frontend-deploy.yaml
+          kubectl apply -f k8s/api-mocks-deploy.yaml
+          kubectl apply -f k8s/ingress.yaml
+          
+          # 4. Aplicar os emissores do Cert-Manager (SSL/TLS)
+          # Nota: Garanta que o Cert-Manager já foi instalado na VM antes do primeiro deploy.
+          if [ -d "k8s/cert-manager" ]; then
+            kubectl apply -f k8s/cert-manager/
+          fi
+          
+          echo "Deploy finalizado com sucesso em $(date)"

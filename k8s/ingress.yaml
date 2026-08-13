@@ -1,0 +1,96 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webhook-ingress
+  namespace: default
+  annotations:
+    # Direciona HTTP para HTTPS automaticamente
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Classe do Ingress Controller
+    kubernetes.io/ingress.class: "nginx"
+    
+    # --- Configurações de Produção (Descomentar na VM Oracle Cloud com Cert-Manager) ---
+    # cert-manager.io/cluster-issuer: "letsencrypt-production"
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  # TLS / SSL Configuração
+  # --- Descomentar na VM Oracle Cloud para habilitar HTTPS automático via Let's Encrypt ---
+  # tls:
+  # - hosts:
+  #   - webhooks.codebr.dev
+  #   secretName: webhooks-codebr-tls
+  rules:
+  # Regra de roteamento para o domínio do projeto
+  - host: webhooks.codebr.dev
+    http:
+      paths:
+      - path: /api/in
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-in-svc
+            port:
+              number: 80
+      - path: /api/out
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-out-svc
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-frontend-svc
+            port:
+              number: 80
+  # Regra para permitir testes locais no localhost sem domínio associado
+  - host: localhost
+    http:
+      paths:
+      - path: /api/in
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-in-svc
+            port:
+              number: 80
+      - path: /api/out
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-out-svc
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-frontend-svc
+            port:
+              number: 80
+  # Regra genérica para capturar tráfego local no Ingress do Kind (sem host específico)
+  - http:
+      paths:
+      - path: /api/in
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-in-svc
+            port:
+              number: 80
+      - path: /api/out
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-out-svc
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: webhook-frontend-svc
+            port:
+              number: 80
