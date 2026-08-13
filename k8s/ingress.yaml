@@ -6,13 +6,12 @@ metadata:
   annotations:
     # Direciona HTTP para HTTPS automaticamente
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # Classe do Ingress Controller
-    kubernetes.io/ingress.class: "nginx"
     
     # --- Configurações de Produção (Descomentar na VM Oracle Cloud com Cert-Manager) ---
     # cert-manager.io/cluster-issuer: "letsencrypt-production"
     # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
+  ingressClassName: nginx
   # TLS / SSL Configuração
   # --- Descomentar na VM Oracle Cloud para habilitar HTTPS automático via Let's Encrypt ---
   # tls:

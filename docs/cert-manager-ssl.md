@@ -95,11 +95,11 @@ metadata:
   name: webhook-ingress
   namespace: default
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     # Vincula o Ingress ao nosso ClusterIssuer de Produção
     cert-manager.io/cluster-issuer: "letsencrypt-production"
 spec:
+  ingressClassName: nginx
   tls:
   - hosts:
     - webhooks.codebr.dev
@@ -113,7 +113,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: webhook-hello-world-svc
+            name: webhook-frontend-svc
             port:
               number: 80
 ```
