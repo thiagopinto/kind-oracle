@@ -174,3 +174,51 @@ spec:
 
 *   **`pathType: Prefix`**: Garante que qualquer requisição que comece com o caminho especificado (ex: `/in/github`, `/in/stripe`) seja enviada para o respectivo serviço.
 *   **Redirect 80 -> 443**: O Nginx Ingress Controller já faz o redirecionamento automático de HTTP para HTTPS por padrão assim que o TLS é habilitado no Ingress, graças à anotação `nginx.ingress.kubernetes.io/ssl-redirect: "true"`.
+
+---
+
+## 🔍 Resolução de Problemas (Troubleshooting)
+
+### Erro: `failed to bind host port 0.0.0.0:80/tcp: address already in use`
+
+Este erro ocorre quando a porta `80` (ou `443`) da máquina física/VM já está sendo utilizada por outro processo do sistema operacional. O Kind não consegue iniciar o nó se não puder mapear essas portas no host.
+
+#### Como resolver:
+
+1.  **Identificar qual processo está usando a porta:**
+    ```bash
+    sudo lsof -i :80
+    # ou
+    sudo ss -lntp | grep :80
+    ```
+    Isso listará o nome do processo (normalmente `nginx`, `apache2`, `httpd` ou outro container docker).
+
+2.  **Parar o serviço nativo do sistema:**
+    Se for um servidor web instalado diretamente na VM (como Nginx ou Apache), você deve desativá-lo para que o Kind possa usar a porta:
+    *   **Para Nginx:**
+        ```bash
+        sudo systemctl stop nginx
+        sudo systemctl disable nginx
+        ```
+    *   **Para Apache:**
+        ```bash
+        sudo systemctl stop apache2
+        sudo systemctl disable apache2
+        ```
+
+3.  **Verificar outros containers Docker:**
+    Caso a porta esteja ocupada por outro container do próprio Docker, liste os containers ativos:
+    ```bash
+    docker ps
+    ```
+    Pare o container que está escutando na porta 80:
+    ```bash
+    docker stop <container-id-ou-nome>
+    ```
+
+4.  **Recriar o Cluster:**
+    Depois de liberar a porta, execute o script novamente:
+    ```bash
+    ./local/setup-local.sh
+    ```
+

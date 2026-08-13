@@ -63,10 +63,8 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main
 
 # 7. Aguardar o Ingress Controller estar pronto
 echo -e "${GREEN}Aguardando o Ingress Controller ficar pronto (pode levar alguns minutos)...${NC}"
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=120s
+# Usamos rollout status para evitar erros se os pods ainda não tiverem sido agendados
+kubectl rollout status deployment/ingress-nginx-controller -n ingress-nginx --timeout=150s
 
 echo -e "${GREEN}=== Cluster Kind configurado com sucesso! ===${NC}"
 echo -e "Portas mapeadas no host local: 80 e 443"
