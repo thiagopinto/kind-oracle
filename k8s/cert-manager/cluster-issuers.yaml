@@ -5,13 +5,13 @@ metadata:
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: admin@codebr.dev # E-mail para avisos de expiração
+    email: thiago@codebr.dev # E-mail para avisos de expiração
     privateKeySecretRef:
       name: letsencrypt-staging-key
     solvers:
-    - http01:
-        ingress:
-          class: nginx
+      - http01:
+          ingress:
+            class: nginx
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -20,10 +20,10 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@codebr.dev # E-mail para avisos de expiração
+    email: thiago@codebr.dev # E-mail para avisos de expiração
     privateKeySecretRef:
       name: letsencrypt-production-key
     solvers:
-    - http01:
-        ingress:
-          class: nginx
+      - http01:
+          ingress:
+            class: nginx
